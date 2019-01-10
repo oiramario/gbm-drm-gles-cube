@@ -1,0 +1,23 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "scp",
+            "type": "shell",
+            "presentation": { "clear": true },
+            "command": "sshpass -p pi scp ${command:cmake.launchTargetPath} pi@192.168.0.135:.",
+        },
+        {
+            "label": "ssh",
+            "type": "shell",
+            "presentation": { "clear": true },
+            "command": "echo -e './gdbserver 192.168.0.163:8888 ${command:cmake.launchTargetPath}' | sshpass -p ubuntu ssh ubuntu@192.168.0.110",
+        },
+        {
+            "label": "build",
+            "dependsOn": ["scp"]
+        }
+    ]
+}
