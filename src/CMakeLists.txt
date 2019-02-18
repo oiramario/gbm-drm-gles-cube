@@ -1,4 +1,4 @@
-set(CMAKE_CXX_FLAGS "-Wall -Wno-reorder -Wno-sign-compare -std=c++11 -D_GLIBCXX_USE_CXX11_ABI")
+set(CMAKE_CXX_FLAGS "-Wall -Wno-reorder -Wno-sign-compare -std=c++11 -D_GLIBCXX_USE_CXX11_ABI=1")
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(DRM REQUIRED libdrm)
