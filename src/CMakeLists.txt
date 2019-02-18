@@ -4,21 +4,15 @@ if(TOOLCHAIN_PATH)
     set(DEPENDENCIES_PATH ${TOOLCHAIN_PATH}/dependencies)
 endif()
 
+find_package(libdrm REQUIRED)
+#find_package(libmali REQUIRED)
+find_package(realsense2 REQUIRED)
+
 include_directories(
-    ${DEPENDENCIES_PATH}/rk3399-libs/include
-    ${DEPENDENCIES_PATH}/drm/include
-    ${DEPENDENCIES_PATH}/realsense2/include
+    ${LIBDRM_INCLUDE_DIRS}
+#    ${LIBMALI_INCLUDE_DIRS}
+    ${LIBREALSENSE2_INCLUDE_DIRS}
 )
-
-find_library(MALI_LIB Mali
-            PATHS ${DEPENDENCIES_PATH}/rk3399-libs/lib64)
-
-find_library(DRM_LIB drm
-            PATHS ${DEPENDENCIES_PATH}/drm/lib64)
-
-find_library(REALSENSE2_LIB realsense2
-            PATHS ${DEPENDENCIES_PATH}/realsense2/lib64)
-
 
 add_library(GBM_EGL_LIB STATIC 
     gbm_egl_device_interface.cpp
@@ -28,9 +22,9 @@ add_library(GBM_EGL_LIB STATIC
 )
 
 target_link_libraries(GBM_EGL_LIB
-    ${MALI_LIB}
-    ${DRM_LIB}
-    ${REALSENSE2_LIB}
+    ${LIBDRM_LIBRARIES}
+#    ${LIBMALI_LIBRARIES}
+    ${LIBREALSENSE_LIBRARIES}
     pthread
     m
 )

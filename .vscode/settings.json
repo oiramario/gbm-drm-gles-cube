@@ -48,8 +48,4 @@
         "utility": "cpp"
     },
     "C_Cpp.configurationWarnings": "Disabled",
-
-    "cmake.configureSettings": {
-        "TOOLCHAIN_PATH":"/opt/aarch64-toolchain"
-        }
 }
