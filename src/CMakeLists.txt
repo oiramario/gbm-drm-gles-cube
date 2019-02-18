@@ -1,17 +1,14 @@
 set(CMAKE_CXX_FLAGS "-Wall -Wno-reorder -Wno-sign-compare -std=c++11")
 
-if(TOOLCHAIN_PATH)
-    set(DEPENDENCIES_PATH ${TOOLCHAIN_PATH}/dependencies)
-endif()
-
-find_package(libdrm REQUIRED)
-#find_package(libmali REQUIRED)
-find_package(realsense2 REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(DRM REQUIRED libdrm)
+#pkg_check_modules(MALI REQUIRED libmali)
+pkg_check_modules(REALSENSE2 REQUIRED realsense2)
 
 include_directories(
-    ${LIBDRM_INCLUDE_DIRS}
-#    ${LIBMALI_INCLUDE_DIRS}
-    ${LIBREALSENSE2_INCLUDE_DIRS}
+    ${DRM_INCLUDE_DIRS}
+#    ${MALI_INCLUDE_DIRS}
+    ${REALSENSE2_INCLUDE_DIRS}
 )
 
 add_library(GBM_EGL_LIB STATIC 
@@ -22,9 +19,9 @@ add_library(GBM_EGL_LIB STATIC
 )
 
 target_link_libraries(GBM_EGL_LIB
-    ${LIBDRM_LIBRARIES}
+    ${DRM_LIBRARIES}
 #    ${LIBMALI_LIBRARIES}
-    ${LIBREALSENSE_LIBRARIES}
+    ${REALSENSE2_LIBRARIES}
     pthread
     m
 )
