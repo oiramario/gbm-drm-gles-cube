@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(gbm-drm-gles-cube VERSION 0.1.0)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -D_GLIBCXX_USE_CXX11_ABI=0")
 
 add_executable(${PROJECT_NAME}
     main.cpp
