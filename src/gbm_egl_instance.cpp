@@ -18,6 +18,7 @@ gbm_egl_device_interface* gbm_egl_instance::new_instance()
 
 void gbm_egl_instance::begin_impl()
 {
+	std::cout << "begin_impl" << std::endl;
 	glViewport(0, 0, get_resolution_width(), get_resolution_height());
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_TEXTURE_2D);

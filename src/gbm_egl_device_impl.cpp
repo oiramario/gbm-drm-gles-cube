@@ -169,6 +169,7 @@ bool gbm_egl_device_impl::create_impl(uint16_t resolution_w, uint16_t resolution
 
 void gbm_egl_device_impl::main_loop_impl()
 {
+    std::cout << "main_loop_impl" << std::endl;
     eglSwapBuffers(gl.display, gl.surface);
 
     gbm_bo* bo = gbm_surface_lock_front_buffer(gbm.surface);
@@ -181,6 +182,7 @@ void gbm_egl_device_impl::main_loop_impl()
     signal(SIGINT, [](int){ running = false; });
 
     // set mode:
+    std::cout << "drmModeSetCrtc" << std::endl;
     if (!drmModeSetCrtc(drm.fd, drm.crtc_id, fb->fb_id, 0, 0, &drm.connector_id, 1, &drm.mode))
     {
         fd_set fds;
@@ -303,10 +305,12 @@ bool gbm_egl_device_impl::init_drm(uint16_t resolution_w, uint16_t resolution_h)
                 if (request_encoder)
                 {
                     // find prefered mode and request resolution:
+                    std::cout << "connector_connected count_modes: " << connector_connected->count_modes << std::endl;
                     drmModeModeInfo* request_mode = nullptr;
                     for (int i = 0; i < connector_connected->count_modes; i++)
                     {
                         drmModeModeInfo* mode = &connector_connected->modes[i];
+                        std::cout << "num " << i << " - type: " << mode->type << " - hdisplay: " << mode->hdisplay << " - vdisplay: " << mode->vdisplay << std::endl;
                         if ((mode->type & DRM_MODE_TYPE_PREFERRED) &&
                             resolution_w == mode->hdisplay && resolution_h == mode->vdisplay)
                         {
