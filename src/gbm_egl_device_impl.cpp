@@ -314,9 +314,9 @@ bool gbm_egl_device_impl::init_drm(uint16_t resolution_w, uint16_t resolution_h)
                     {
                         drmModeModeInfo* mode = &connector_connected->modes[i];
                         std::cout << "num " << i << " - type: " << mode->type << " - hdisplay: " << mode->hdisplay << " - vdisplay: " << mode->vdisplay << std::endl;
-                        if ((mode->type & DRM_MODE_TYPE_PREFERRED) 
+                        //if ((mode->type & DRM_MODE_TYPE_PREFERRED) 
                             // && resolution_w == mode->hdisplay && resolution_h == mode->vdisplay
-                            )
+                        //    )
                         {
                             std::cout << "find resolution." << std::endl;
                             request_mode = mode;
