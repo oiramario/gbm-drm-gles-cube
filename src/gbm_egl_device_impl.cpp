@@ -273,14 +273,16 @@ bool gbm_egl_device_impl::init_drm(uint16_t resolution_w, uint16_t resolution_h)
         if (resources)
         {
             // find a connected connector:
+            std::cout << "resources connectors num: " << resources->count_connectors << std::endl;
             drmModeConnector* connector_connected = nullptr;
             for (int i = 0; i < resources->count_connectors; i++)
             {
                 drmModeConnector* connector = drmModeGetConnector(fd, resources->connectors[i]);
+                std::cout << "connector modes num: " << connector->count_modes << std::endl;
                 if (connector->connection == DRM_MODE_CONNECTED &&
                     connector->count_modes > 0)
                 {
-                    // it's connected, let's use this!
+                    std::cout << "find connected connector." << std::endl;
                     connector_connected = connector;
                     break;
                 }
@@ -296,6 +298,7 @@ bool gbm_egl_device_impl::init_drm(uint16_t resolution_w, uint16_t resolution_h)
                     drmModeEncoder* encoder = drmModeGetEncoder(fd, resources->encoders[i]);
                     if (encoder->encoder_id == connector_connected->encoder_id)
                     {
+                        std::cout << "find encoder." << std::endl;
                         request_encoder = encoder;
                         break;
                     }
@@ -305,15 +308,17 @@ bool gbm_egl_device_impl::init_drm(uint16_t resolution_w, uint16_t resolution_h)
                 if (request_encoder)
                 {
                     // find prefered mode and request resolution:
-                    std::cout << "connector_connected count_modes: " << connector_connected->count_modes << std::endl;
+                    std::cout << "connector's connected modes num: " << connector_connected->count_modes << std::endl;
                     drmModeModeInfo* request_mode = nullptr;
                     for (int i = 0; i < connector_connected->count_modes; i++)
                     {
                         drmModeModeInfo* mode = &connector_connected->modes[i];
                         std::cout << "num " << i << " - type: " << mode->type << " - hdisplay: " << mode->hdisplay << " - vdisplay: " << mode->vdisplay << std::endl;
-                        if ((mode->type & DRM_MODE_TYPE_PREFERRED) &&
-                            resolution_w == mode->hdisplay && resolution_h == mode->vdisplay)
+                        if ((mode->type & DRM_MODE_TYPE_PREFERRED) 
+                            // && resolution_w == mode->hdisplay && resolution_h == mode->vdisplay
+                            )
                         {
+                            std::cout << "find resolution." << std::endl;
                             request_mode = mode;
                             break;
                         }
