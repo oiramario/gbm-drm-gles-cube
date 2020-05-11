@@ -266,7 +266,7 @@ void gbm_egl_device_impl::main_loop_impl()
 bool gbm_egl_device_impl::init_drm(uint16_t resolution_w, uint16_t resolution_h)
 {
     bool ret = false;
-	int fd = open("/dev/mali0", O_RDWR);
+	int fd = open("/dev/dri/card0", O_RDWR);
 	if (fd >= 0)
     {
         drmModeRes* resources = drmModeGetResources(fd);
