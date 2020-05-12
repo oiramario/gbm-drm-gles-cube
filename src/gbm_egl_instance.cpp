@@ -2,13 +2,13 @@
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 #include <iostream>
-//#include <librealsense2/rs.hpp>
+#include <librealsense2/rs.hpp>
 
 #define RS_WIDTH 1920
 #define RS_HEIGHT 1080
 #define RS_FPS 30
 
-//static rs2::pipeline pipe;
+static rs2::pipeline pipe;
 
 gbm_egl_device_interface* gbm_egl_instance::new_instance()
 {
@@ -44,41 +44,41 @@ void gbm_egl_instance::begin_impl()
 
     cube_vbo = create_geometry_cube();
 
-	// init realsense
-	// rs2::context ctx;
-	// auto devicelist = ctx.query_devices();
-	// if (devicelist.size() > 0)
-	// {
-	// 	rs2::log_to_console(RS2_LOG_SEVERITY_DEBUG);
-	// 	rs2::device dev = devicelist.front();
-	// 	fprintf(stdout, "\nRealsense Device info---\n"
-	// 	                "    Name              : %s\n"
-	// 					"    Serial Number     : %s\n"
-	// 					"    Firmware Version  : %s\n"
-	// 					"    USB Type          : %s\n"
-	// 					"    Stream Color      : %d, %d, %d\n",
-	// 						dev.get_info(RS2_CAMERA_INFO_NAME),
-	// 						dev.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER),
-	// 						dev.get_info(RS2_CAMERA_INFO_FIRMWARE_VERSION),
-	// 						dev.get_info(RS2_CAMERA_INFO_USB_TYPE_DESCRIPTOR),
-	// 						RS_WIDTH, RS_HEIGHT, RS_FPS);
+	init realsense
+	rs2::context ctx;
+	auto devicelist = ctx.query_devices();
+	if (devicelist.size() > 0)
+	{
+		rs2::log_to_console(RS2_LOG_SEVERITY_DEBUG);
+		rs2::device dev = devicelist.front();
+		fprintf(stdout, "\nRealsense Device info---\n"
+		                "    Name              : %s\n"
+						"    Serial Number     : %s\n"
+						"    Firmware Version  : %s\n"
+						"    USB Type          : %s\n"
+						"    Stream Color      : %d, %d, %d\n",
+							dev.get_info(RS2_CAMERA_INFO_NAME),
+							dev.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER),
+							dev.get_info(RS2_CAMERA_INFO_FIRMWARE_VERSION),
+							dev.get_info(RS2_CAMERA_INFO_USB_TYPE_DESCRIPTOR),
+							RS_WIDTH, RS_HEIGHT, RS_FPS);
 
-	// 	rs2::config cfg;
-	// 	cfg.enable_stream(RS2_STREAM_COLOR, RS_WIDTH, RS_HEIGHT, RS2_FORMAT_YUYV, RS_FPS);
-	// 	pipe.start(cfg);
+		rs2::config cfg;
+		cfg.enable_stream(RS2_STREAM_COLOR, RS_WIDTH, RS_HEIGHT, RS2_FORMAT_YUYV, RS_FPS);
+		pipe.start(cfg);
 
-    // 	processing_thread = std::thread([&](){
-	// 		while (running)
-	// 		{
-	// 			rs2::frameset fs;
-	// 			if (pipe.try_wait_for_frames(&fs, 1000))
-	// 			{
-	// 				rs2::frame color_frame = fs.get_color_frame();
-	// 				update_texture(texture, color_frame.get_data());
-	// 			}
-	// 		}
-	// 	});
-	// }
+    	processing_thread = std::thread([&](){
+			while (running)
+			{
+				rs2::frameset fs;
+				if (pipe.try_wait_for_frames(&fs, 1000))
+				{
+					rs2::frame color_frame = fs.get_color_frame();
+					update_texture(texture, color_frame.get_data());
+				}
+			}
+		});
+	}
 }
 
 
