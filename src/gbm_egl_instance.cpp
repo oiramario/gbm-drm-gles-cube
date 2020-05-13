@@ -44,7 +44,7 @@ void gbm_egl_instance::begin_impl()
 
     cube_vbo = create_geometry_cube();
 
-	init realsense
+	// init realsense
 	rs2::context ctx;
 	auto devicelist = ctx.query_devices();
 	if (devicelist.size() > 0)
