@@ -14,8 +14,8 @@
             "externalConsole": false,
             "preLaunchTask": "build",
             "MIMode": "gdb",
-            "miDebuggerPath": "/opt/aarch64-toolchain/gdb",
-            "miDebuggerServerAddress": "192.168.0.135:8888",
+            "miDebuggerPath": "/opt/devkit/gdb",
+            "miDebuggerServerAddress": "192.168.1.6:8888",
         }
     ]
 }
