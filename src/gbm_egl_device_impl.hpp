@@ -42,9 +42,11 @@ private:
     struct drm_info
     {
         int fd = -1;
-        uint32_t connector_id = 0;
-        uint32_t crtc_id = 0;
-        drmModeModeInfo mode = { 0 };
+        drmModeRes* resources = nullptr;
+        drmModeConnector* connector = nullptr;
+        drmModeEncoder* encoder = nullptr;
+        drmModeCrtcPtr crtc = nullptr;
+        drmModeModeInfo* mode = nullptr;
     };
     bool init_drm(uint16_t resolution_w, uint16_t resolution_h);
 

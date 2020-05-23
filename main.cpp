@@ -3,5 +3,5 @@
 int main()
 {
 	auto device = gbm_egl_device_interface::get_instance();
-	device->create(1024, 600);
+	device->create(1920, 1080);
 }

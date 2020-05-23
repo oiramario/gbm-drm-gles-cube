@@ -10,12 +10,6 @@
             "command": "sshpass -p 111 scp ${command:cmake.launchTargetPath} flagon@192.168.1.6:~/",
         },
         {
-            "label": "ssh",
-            "type": "shell",
-            "presentation": { "clear": true },
-            "command": "echo -e './gdbserver 192.168.1.6:8888 ${command:cmake.launchTargetPath}' | sshpass -p 111 ssh flagon@192.168.1.6",
-        },
-        {
             "label": "build",
             "dependsOn": ["scp"]
         }

@@ -15,13 +15,13 @@ std::atomic_bool gbm_egl_device_impl::running {true};
 
 uint16_t gbm_egl_device_impl::get_resolution_width()
 {
-    return drm.mode.hdisplay;
+    return drm.mode->hdisplay;
 }
 
 
 uint16_t gbm_egl_device_impl::get_resolution_height()
 {
-    return drm.mode.vdisplay;
+    return drm.mode->vdisplay;
 }
 
 
@@ -141,6 +141,14 @@ bool gbm_egl_device_impl::update_texture(oes_texture& texture, const void* data)
 
 gbm_egl_device_impl::~gbm_egl_device_impl()
 {
+    if (drm.crtc)
+    {
+        drmModeSetCrtc(drm.fd, drm.crtc->crtc_id, drm.crtc->buffer_id,
+                       drm.crtc->x, drm.crtc->y, &drm.connector->connector_id,
+                                    1, &drm.crtc->mode);
+        drmModeFreeCrtc(drm.crtc);
+    }
+
     if (gl.display)
     {
         if (gl.surface)
@@ -155,7 +163,14 @@ gbm_egl_device_impl::~gbm_egl_device_impl()
     if (gbm.dev)
         gbm_device_destroy(gbm.dev);
 
-    drmClose(drm.fd);
+    if (drm.connector)
+        drmModeFreeConnector(drm.connector);
+    if (drm.encoder)
+        drmModeFreeEncoder(drm.encoder);
+    if (drm.resources)
+        drmModeFreeResources(drm.resources);
+    if (drm.fd > 0)
+        drmClose(drm.fd);
 }
 
 
@@ -175,15 +190,13 @@ void gbm_egl_device_impl::main_loop_impl()
     gbm_bo* bo = gbm_surface_lock_front_buffer(gbm.surface);
     drm_fb* fb = drm_fb_get_from_bo(bo);
 
-    // save the current CRTC configuration
-    drmModeCrtcPtr orig_crtc = drmModeGetCrtc(drm.fd, drm.crtc_id);
-
     // handle Ctrl+C
     signal(SIGINT, [](int){ running = false; });
 
     // set mode:
     std::cout << "drmModeSetCrtc" << std::endl;
-    if (!drmModeSetCrtc(drm.fd, drm.crtc_id, fb->fb_id, 0, 0, &drm.connector_id, 1, &drm.mode))
+    if (!drmModeSetCrtc(drm.fd, drm.encoder->crtc_id, fb->fb_id, 
+        0, 0, &drm.connector->connector_id, 1, drm.mode))
     {
         fd_set fds;
         FD_ZERO(&fds);
@@ -210,7 +223,8 @@ void gbm_egl_device_impl::main_loop_impl()
             // Here you could also update drm plane layers if you want hw composition
 
             int waiting_for_flip = 1;
-            if (drmModePageFlip(drm.fd, drm.crtc_id, fb->fb_id, DRM_MODE_PAGE_FLIP_EVENT, &waiting_for_flip))
+            if (drmModePageFlip(drm.fd, drm.encoder->crtc_id, fb->fb_id, 
+                DRM_MODE_PAGE_FLIP_EVENT, &waiting_for_flip))
             {
                 std::cerr << "failed to queue page flip: " << strerror(errno) << std::endl;
                 break;
@@ -249,17 +263,11 @@ void gbm_egl_device_impl::main_loop_impl()
         }
 
         end_impl();
-
-        // restore the previous CRTC
-        drmModeSetCrtc(drm.fd, orig_crtc->crtc_id, orig_crtc->buffer_id, 
-                       orig_crtc->x, orig_crtc->y, &drm.connector_id, 1, &orig_crtc->mode);
     }
     else
     {
         std::cerr << "failed to set mode: " << strerror(errno) << std::endl;
     }
-
-    drmModeFreeCrtc(orig_crtc);
 }
 
 
@@ -274,94 +282,45 @@ bool gbm_egl_device_impl::init_drm(uint16_t resolution_w, uint16_t resolution_h)
         {
             // find a connected connector:
             std::cout << "resources connectors num: " << resources->count_connectors << std::endl;
-            drmModeConnector* connector_connected = nullptr;
-            for (int i = 0; i < resources->count_connectors; i++)
+            for (int c = 0; c < resources->count_connectors && !ret; c++)
             {
-                drmModeConnector* connector = drmModeGetConnector(fd, resources->connectors[i]);
+                drmModeConnector* connector = drmModeGetConnector(fd, resources->connectors[c]);
                 std::cout << "connector modes num: " << connector->count_modes << std::endl;
                 if (connector->connection == DRM_MODE_CONNECTED &&
-                    connector->count_modes > 0)
+                    connector->connector_type == DRM_MODE_CONNECTOR_HDMIA)
                 {
-                    std::cout << "find connected connector." << std::endl;
-                    connector_connected = connector;
-                    break;
-                }
-                drmModeFreeConnector(connector);
-            }
-
-            if (connector_connected)
-            {
-                // find encoder:
-                drmModeEncoder* request_encoder = nullptr;
-                for (int i = 0; i < resources->count_encoders; i++)
-                {
-                    drmModeEncoder* encoder = drmModeGetEncoder(fd, resources->encoders[i]);
-                    if (encoder->encoder_id == connector_connected->encoder_id)
+                    for (int m = 0; m < connector->count_modes && !ret; m++)
                     {
-                        std::cout << "find encoder." << std::endl;
-                        request_encoder = encoder;
-                        break;
-                    }
-                    drmModeFreeEncoder(encoder);
-                }
-
-                if (request_encoder)
-                {
-                    // find prefered mode and request resolution:
-                    std::cout << "connector's connected modes num: " << connector_connected->count_modes << std::endl;
-                    drmModeModeInfo* request_mode = nullptr;
-                    for (int i = 0; i < connector_connected->count_modes; i++)
-                    {
-                        drmModeModeInfo* mode = &connector_connected->modes[i];
-                        std::cout << "num " << i << " - type: " << mode->type << " - hdisplay: " << mode->hdisplay << " - vdisplay: " << mode->vdisplay << std::endl;
-                        //if ((mode->type & DRM_MODE_TYPE_PREFERRED) 
-                            // && resolution_w == mode->hdisplay && resolution_h == mode->vdisplay
-                        //    )
+                        drmModeModeInfo* mode = &connector->modes[m];
+                        if (resolution_w == mode->hdisplay && 
+                            resolution_h == mode->vdisplay)
                         {
-                            std::cout << "find resolution." << std::endl;
-                            request_mode = mode;
-                            break;
+                            for (int e = 0; e < resources->count_encoders && !ret; e++)
+                            {
+                                drmModeEncoder* encoder = drmModeGetEncoder(fd, resources->encoders[e]);
+                                if (encoder->encoder_id == connector->encoder_id)
+                                {
+                                    drm.fd = fd;
+                                    drm.resources = resources;
+                                    drm.connector = connector;
+                                    drm.encoder = encoder;
+                                    drm.crtc = drmModeGetCrtc(drm.fd, encoder->crtc_id);
+                                    drm.mode = mode;
+                                    ret = true;
+                                    std::cout << "find encoder." << std::endl;
+                                    break;
+                                }
+                                if (!ret)
+                                    drmModeFreeEncoder(encoder);
+                            }
                         }
                     }
-
-                    if (request_mode)
-                    {
-                        drm.fd = fd;
-                        drm.connector_id = connector_connected->connector_id;
-                        drm.crtc_id = request_encoder->crtc_id;
-                        drm.mode = *request_mode;
-                        ret = true;
-                    }
-                    else
-                    {
-                        std::cerr << "could not find mode!" << std::endl;
-                    }
-
-                    drmModeFreeEncoder(request_encoder);
                 }
-                else
-                {
-                    std::cerr << "no crtc found!" << std::endl;
-                }
-
-                drmModeFreeConnector(connector_connected);
+                if (!ret)
+                    drmModeFreeConnector(connector);
             }
-            else
-            {
-                std::cerr << "no connected connector!" << std::endl;
-            }
-
-            drmModeFreeResources(resources);
-        }
-        else
-        {
-            std::cerr << "drmModeGetResources failed: " << strerror(errno) << std::endl;
         }
     }
-    else
-    {
-		std::cerr << "could not open drm device!" << std::endl;
-	}
 
     return ret;
 }
@@ -373,8 +332,10 @@ bool gbm_egl_device_impl::init_gbm()
     gbm_device* dev = gbm_create_device(drm.fd);
     if (dev)
     {
-        gbm_surface* surf = gbm_surface_create(dev, drm.mode.hdisplay, drm.mode.vdisplay, 
-                                               GBM_FORMAT_XRGB8888, GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
+        gbm_surface* surf = gbm_surface_create(dev, 
+            drm.mode->hdisplay, drm.mode->vdisplay, 
+            GBM_FORMAT_XRGB8888, 
+            GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
         if (surf)
         {
             gbm.dev = dev;
