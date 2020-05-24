@@ -53,7 +53,7 @@ void gbm_egl_instance::begin_impl()
 	auto devicelist = ctx.query_devices();
 	if (devicelist.size() > 0)
 	{
-		rs2::log_to_console(RS2_LOG_SEVERITY_DEBUG);
+		rs2::log_to_console(RS2_LOG_SEVERITY_WARN);
 		rs2::device dev = devicelist.front();
 		fprintf(stdout, "\nRealsense Device info---\n"
 		                "    Name              : %s\n"

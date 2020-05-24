@@ -273,16 +273,13 @@ uint create_generic_program()
 		"uniform mat4 modelviewprojectionMatrix;\n"
 		"                                   \n"
 		"attribute vec4 in_position;        \n"
-		"attribute vec3 in_Colour;          \n"
 		"attribute vec2 in_TexCoord;        \n"
 		"                                   \n"
-		"varying vec3 vColour;              \n"
 		"varying vec2 vTexCoord;            \n"
 		"                                   \n"
 		"void main()                        \n"
 		"{                                  \n"
 		"    gl_Position = modelviewprojectionMatrix * in_position;\n"
-        "    vColour = in_Colour;     \n"
 		"    vTexCoord = in_TexCoord; \n"
 		"}                            \n";
 
@@ -293,12 +290,11 @@ uint create_generic_program()
 		"uniform samplerExternalOES uTex;   \n"
 //		"uniform sampler2D uTex;   \n"
 		"                                   \n"
-		"varying vec3 vColour;              \n"
 		"varying vec2 vTexCoord;            \n"
 		"                                   \n"
 		"void main()                        \n"
 		"{                                  \n"
-		"    gl_FragColor = vec4(vColour, 1) * texture2D(uTex, vTexCoord);\n"
+		"    gl_FragColor = texture2D(uTex, vTexCoord);\n"
 		"}                                  \n";
 
     return create_program(vertex_shader_source, fragment_shader_source);
@@ -308,68 +304,36 @@ uint create_generic_program()
 uint create_geometry_cube()
 {
     static const float vVertices[] = {
-        // front
-        -1.0f, -1.0f, +1.0f,
-        +1.0f, -1.0f, +1.0f,
-        -1.0f, +1.0f, +1.0f,
-        +1.0f, +1.0f, +1.0f,
-        // back
-        +1.0f, -1.0f, -1.0f,
-        -1.0f, -1.0f, -1.0f,
-        +1.0f, +1.0f, -1.0f,
-        -1.0f, +1.0f, -1.0f,
-        // right
-        +1.0f, -1.0f, +1.0f,
-        +1.0f, -1.0f, -1.0f,
-        +1.0f, +1.0f, +1.0f,
-        +1.0f, +1.0f, -1.0f,
-        // left
-        -1.0f, -1.0f, -1.0f,
-        -1.0f, -1.0f, +1.0f,
-        -1.0f, +1.0f, -1.0f,
-        -1.0f, +1.0f, +1.0f,
-        // top
-        -1.0f, +1.0f, +1.0f,
-        +1.0f, +1.0f, +1.0f,
-        -1.0f, +1.0f, -1.0f,
-        +1.0f, +1.0f, -1.0f,
-        // bottom
-        -1.0f, -1.0f, -1.0f,
-        +1.0f, -1.0f, -1.0f,
-        -1.0f, -1.0f, +1.0f,
-        +1.0f, -1.0f, +1.0f,
-    };
-
-    static const float vColours[] = {
-        1.0f, 0.0f, 0.0f,
-        1.0f, 0.0f, 0.0f,
-        1.0f, 0.0f, 0.0f,
-        1.0f, 0.0f, 0.0f,
-
-        0.0f, 1.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        
-        0.0f, 0.0f, 1.0f,
-        0.0f, 0.0f, 1.0f,
-        0.0f, 0.0f, 1.0f,
-        0.0f, 0.0f, 1.0f,
-        
-        1.0f, 1.0f, 0.0f,
-        1.0f, 1.0f, 0.0f,
-        1.0f, 1.0f, 0.0f,
-        1.0f, 1.0f, 0.0f,
-        
-        0.0f, 1.0f, 1.0f,
-        0.0f, 1.0f, 1.0f,
-        0.0f, 1.0f, 1.0f,
-        0.0f, 1.0f, 1.0f,
-        
-        1.0f, 0.0f, 1.0f,
-        1.0f, 0.0f, 1.0f,
-        1.0f, 0.0f, 1.0f,
-        1.0f, 0.0f, 1.0f
+            // front
+            -1.0f, -1.0f, +1.0f,
+            +1.0f, -1.0f, +1.0f,
+            -1.0f, +1.0f, +1.0f,
+            +1.0f, +1.0f, +1.0f,
+            // back
+            +1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f, -1.0f,
+            +1.0f, +1.0f, -1.0f,
+            -1.0f, +1.0f, -1.0f,
+            // right
+            +1.0f, -1.0f, +1.0f,
+            +1.0f, -1.0f, -1.0f,
+            +1.0f, +1.0f, +1.0f,
+            +1.0f, +1.0f, -1.0f,
+            // left
+            -1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f, +1.0f,
+            -1.0f, +1.0f, -1.0f,
+            -1.0f, +1.0f, +1.0f,
+            // top
+            -1.0f, +1.0f, +1.0f,
+            +1.0f, +1.0f, +1.0f,
+            -1.0f, +1.0f, -1.0f,
+            +1.0f, +1.0f, -1.0f,
+            // bottom
+            -1.0f, -1.0f, -1.0f,
+            +1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f, +1.0f,
+            +1.0f, -1.0f, +1.0f,
     };
 
     static const float vTexCoords[] = {
@@ -407,21 +371,17 @@ uint create_geometry_cube()
 
     GLuint cube_vbo = -1;
     GLuint positionsoffset = 0;
-    GLuint coloursoffset = sizeof(vVertices);
-    GLuint texcoordsoffset = coloursoffset + sizeof(vColours);
+    GLuint texcoordsoffset = sizeof(vVertices);
         
     glGenBuffers(1, &cube_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, cube_vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vVertices) + sizeof(vColours) + sizeof(vTexCoords), 0, GL_STATIC_DRAW);
-    glBufferSubData(GL_ARRAY_BUFFER, positionsoffset, sizeof(vVertices), vVertices);
-    glBufferSubData(GL_ARRAY_BUFFER, coloursoffset, sizeof(vColours), vColours);
-    glBufferSubData(GL_ARRAY_BUFFER, texcoordsoffset, sizeof(vTexCoords), vTexCoords);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vVertices) + sizeof(vTexCoords), 0, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, positionsoffset, sizeof(vVertices), &vVertices[0]);
+    glBufferSubData(GL_ARRAY_BUFFER, texcoordsoffset, sizeof(vTexCoords), &vTexCoords[0]);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (const GLvoid *)(intptr_t)positionsoffset);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid *)(intptr_t)texcoordsoffset);
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(2);
 
     return cube_vbo;
 }

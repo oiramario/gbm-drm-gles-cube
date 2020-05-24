@@ -110,17 +110,7 @@ void gbm_egl_device_impl::destroy_texture(oes_texture& texture)
 bool gbm_egl_device_impl::update_texture(oes_texture& texture, const void* data)
 {
 #if 1
-    if (data && texture.dma && texture.bo)
-    {
-        const uint32_t height = gbm_bo_get_height(texture.bo);
-        const uint32_t width = gbm_bo_get_width(texture.bo);
-        const uint32_t bpp = 2;
-        const uint32_t size = width * height * bpp;
-        memcpy(texture.dma, data, size);
-
-        return true;
-    }
-#else
+    // mmap fast
     if (data && texture.bo)
     {
         const uint32_t height = gbm_bo_get_height(texture.bo);
@@ -133,6 +123,18 @@ bool gbm_egl_device_impl::update_texture(oes_texture& texture, const void* data)
             munmap(address, size);
             return true;
         }
+    }
+#else
+    // memcpy slow
+    if (data && texture.dma && texture.bo)
+    {
+        const uint32_t height = gbm_bo_get_height(texture.bo);
+        const uint32_t width = gbm_bo_get_width(texture.bo);
+        const uint32_t bpp = 2;
+        const uint32_t size = width * height * bpp;
+        memcpy(texture.dma, data, size);
+
+        return true;
     }
 #endif
     return false;
