@@ -8,6 +8,14 @@
 #include <atomic>
 #include "gbm_egl_device_interface.hpp"
 
+enum TextureFormat
+{
+    Unknown,
+    Depth16,
+    YUYV,
+    RGB8
+};
+
 class gbm_egl_device_impl : public gbm_egl_device_interface
 {
 protected:
@@ -16,13 +24,15 @@ protected:
 
     struct oes_texture
     {
+        TextureFormat format = TextureFormat::Unknown;
+        int bpp = 0;
         struct gbm_bo* bo = nullptr;
         void* image = nullptr;
         uint32_t id = 0;
         __u64 offset = 0;
         void* dma = nullptr;
     };
-    bool create_texture(int width, int height, oes_texture& out_texture);
+    bool create_texture(int width, int height, oes_texture& out_texture, TextureFormat format);
     void destroy_texture(oes_texture& texture);
     bool update_texture(oes_texture& texture, const void* data);
 

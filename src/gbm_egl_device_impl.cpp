@@ -25,18 +25,45 @@ uint16_t gbm_egl_device_impl::get_resolution_height()
 }
 
 
-bool gbm_egl_device_impl::create_texture(int width, int height, oes_texture& out_texture)
+bool gbm_egl_device_impl::create_texture(int width, int height, oes_texture& out_texture, TextureFormat format)
 {
     bool ret = false;
-    gbm_bo* bo = gbm_bo_create(gbm.dev, width, height, GBM_FORMAT_YUYV, GBM_BO_USE_RENDERING | GBM_BO_USE_SCANOUT);
+    int32_t bpp = 0;
+    EGLint egl_format = 0;
+    uint32_t gbm_format = 0;
+    switch (format)
+    {
+        case TextureFormat::Depth16:
+            egl_format = DRM_FORMAT_RGB565;
+            gbm_format = GBM_FORMAT_RGB565;
+            bpp = 2;
+            break;
+
+        case TextureFormat::YUYV:
+            egl_format = DRM_FORMAT_YUYV;
+            gbm_format = GBM_FORMAT_YUYV;
+            bpp = 2;
+            break;
+
+        case TextureFormat::RGB8:
+            egl_format = DRM_FORMAT_RGB888;
+            gbm_format = GBM_FORMAT_RGB888;
+            bpp = 3;
+            break;
+
+        default:
+            return false;
+            break;
+    }
+
+    gbm_bo* bo = gbm_bo_create(gbm.dev, width, height, gbm_format, GBM_BO_USE_RENDERING | GBM_BO_USE_SCANOUT);
     if (bo)
     {
         const int fd = gbm_bo_get_fd(bo);
-        const int32_t bpp = 2;
         const EGLint khr_image_attrs[] = {EGL_DMA_BUF_PLANE0_FD_EXT, fd,
                                           EGL_WIDTH, width,
                                           EGL_HEIGHT, height,
-                                          EGL_LINUX_DRM_FOURCC_EXT, DRM_FORMAT_YUYV,
+                                          EGL_LINUX_DRM_FOURCC_EXT, egl_format,
                                           EGL_DMA_BUF_PLANE0_PITCH_EXT, width * bpp,
                                           EGL_DMA_BUF_PLANE0_OFFSET_EXT, 0,
                                           EGL_NONE};
@@ -57,6 +84,8 @@ bool gbm_egl_device_impl::create_texture(int width, int height, oes_texture& out
                 void* address = mmap(0, size, PROT_WRITE, MAP_SHARED, drm.fd, arg.offset);
                 if (address != MAP_FAILED)
                 {
+                    out_texture.format = format;
+                    out_texture.bpp = bpp;
                     out_texture.bo = bo;
                     out_texture.image = eglImage;
                     out_texture.id = glTexture;
@@ -115,7 +144,9 @@ bool gbm_egl_device_impl::update_texture(oes_texture& texture, const void* data)
     {
         const uint32_t height = gbm_bo_get_height(texture.bo);
         const uint32_t stride = gbm_bo_get_stride(texture.bo);
-        int size = stride * height / 2;
+        int size = stride * height;
+        if (texture.format == TextureFormat::YUYV)
+            size /= 2;
         void* address = mmap(0, size, PROT_WRITE, MAP_SHARED, drm.fd, texture.offset);
         if (address != MAP_FAILED)
         {

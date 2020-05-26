@@ -18,16 +18,18 @@ private:
     virtual void render_impl();
 
 private:
-	int modelviewprojectionmatrix;
+	int u_mvp;
 
-    uint program;
+    uint generic_program;
+    uint z16_program;
     uint cube_vbo;
-    oes_texture texture;
+    oes_texture color_texture;
+    oes_texture depth_texture;
 
     uint count = 0;
-   	ESMatrix modelview;
-    ESMatrix projection;
-    ESMatrix modelviewprojection;
+   	ESMatrix color_matrix, depth_matrix;
+    ESMatrix projection_matrix;
+    ESMatrix mvp_matrix;
 
     std::thread processing_thread;
 };

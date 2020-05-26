@@ -23,6 +23,7 @@ struct ESMatrix
 uint create_program(const char* vs_src, const char* fs_src);
 void destroy_program(uint program);
 uint create_generic_program();
+uint create_z16_program();
 uint create_geometry_cube();
 void destroy_geometry(uint geometry);
 void draw_cube(uint cube_vbo);

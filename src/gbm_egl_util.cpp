@@ -270,32 +270,79 @@ void destroy_program(uint program)
 uint create_generic_program()
 {
     static const char *vertex_shader_source =
-		"uniform mat4 modelviewprojectionMatrix;\n"
-		"                                   \n"
-		"attribute vec4 in_position;        \n"
-		"attribute vec2 in_TexCoord;        \n"
-		"                                   \n"
-		"varying vec2 vTexCoord;            \n"
-		"                                   \n"
-		"void main()                        \n"
-		"{                                  \n"
-		"    gl_Position = modelviewprojectionMatrix * in_position;\n"
-		"    vTexCoord = in_TexCoord; \n"
-		"}                            \n";
+        "#version 300 es                      \n"
+		"uniform mat4 mvp;                    \n"
+		"                                     \n"
+		"in vec4 in_position;                 \n"
+		"in vec2 in_TexCoord;                 \n"
+		"                                     \n"
+		"out vec2 vTexCoord;                  \n"
+		"                                     \n"
+		"void main()                          \n"
+		"{                                    \n"
+		"    gl_Position = mvp * in_position; \n"
+		"    vTexCoord = in_TexCoord;         \n"
+		"}                                    \n";
 
     static const char *fragment_shader_source =
-		"#extension GL_OES_EGL_image_external : require\n"
-		"precision mediump float;           \n"
-		"                                   \n"
-		"uniform samplerExternalOES uTex;   \n"
-//		"uniform sampler2D uTex;   \n"
-		"                                   \n"
-		"varying vec2 vTexCoord;            \n"
-		"                                   \n"
-		"void main()                        \n"
-		"{                                  \n"
-		"    gl_FragColor = texture2D(uTex, vTexCoord);\n"
+        "#version 300 es\n"
+		"#extension GL_OES_EGL_image_external : require \n"
+		"precision mediump float;                       \n"
+		"                                               \n"
+		"uniform samplerExternalOES uTex;               \n"
+		"                                               \n"
+		"in vec2 vTexCoord;                             \n"
+		"                                               \n"
+		"out vec4 o_FragColor;                          \n"
+		"                                               \n"
+		"void main()                                    \n"
+		"{                                              \n"
+		"    o_FragColor = texture(uTex, vTexCoord);\n"
 		"}                                  \n";
+
+    return create_program(vertex_shader_source, fragment_shader_source);
+}
+
+
+uint create_z16_program()
+{
+    static const char *vertex_shader_source =
+        "#version 300 es                      \n"
+		"uniform mat4 mvp;                    \n"
+		"                                     \n"
+		"in vec4 in_position;                 \n"
+		"in vec2 in_TexCoord;                 \n"
+		"                                     \n"
+		"out vec2 vTexCoord;                  \n"
+		"                                     \n"
+		"void main()                          \n"
+		"{                                    \n"
+		"    gl_Position = mvp * in_position; \n"
+		"    vTexCoord = in_TexCoord;         \n"
+		"}                                    \n";
+
+    static const char *fragment_shader_source =
+        "#version 300 es\n"
+		"#extension GL_OES_EGL_image_external : require       \n"
+		"precision mediump float;                             \n"
+        "precision highp int;                                 \n"
+		"                                                     \n"
+		"uniform samplerExternalOES uTex;                     \n"
+		"                                                     \n"
+		"in vec2 vTexCoord;                                   \n"
+		"                                                     \n"
+		"out vec4 o_FragColor;                                \n"
+		"                                                     \n"
+		"void main()                                          \n"
+		"{                                                    \n"
+		"    vec3 rgb = texture(uTex, vTexCoord).rgb * 255.0; \n"
+        "    int r = int(rgb.r);                              \n"
+        "    int g = int(rgb.g);                              \n"
+        "    int b = int(rgb.b);                              \n"
+        "    int z16 = (r << 11) | (g << 5) | b;              \n"
+        "    float depth = float(z16) / 65535.0;              \n"
+        "    o_FragColor = vec4(depth);                       \n"
+		"}                                                    \n";
 
     return create_program(vertex_shader_source, fragment_shader_source);
 }
