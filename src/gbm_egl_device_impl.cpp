@@ -319,8 +319,7 @@ bool gbm_egl_device_impl::init_drm(uint16_t resolution_w, uint16_t resolution_h)
             {
                 drmModeConnector* connector = drmModeGetConnector(fd, resources->connectors[c]);
                 std::cout << "connector modes num: " << connector->count_modes << std::endl;
-                if (connector->connection == DRM_MODE_CONNECTED &&
-                    connector->connector_type == DRM_MODE_CONNECTOR_HDMIA)
+                if (connector->connection == DRM_MODE_CONNECTED)
                 {
                     for (int m = 0; m < connector->count_modes && !ret; m++)
                     {
